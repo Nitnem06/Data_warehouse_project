@@ -2,6 +2,9 @@
   AIM: To load and clean the data from bronze layer into silver layer by applying transformations on it.
 */
 
+USE DataWarehouse;
+EXEC Silver.cleaning_data;
+
 USE [DataWarehouse]
 	GO
 	DECLARE	@return_value int
@@ -29,6 +32,22 @@ IF COL_LENGTH('Silver.crm_prd_info', 'cat_id') IS NOT NULL
     ALTER TABLE Silver.crm_prd_info DROP COLUMN cat_id;
 	END;
 	ALTER TABLE Silver.crm_prd_info ADD cat_id VARCHAR(50);
+
+GO
+
+IF COL_LENGTH('Silver.crm_sales_details', 'sls_ord_num') IS NOT NULL
+	BEGIN
+    ALTER TABLE Silver.crm_sales_details DROP COLUMN sls_ord_num;
+	END;
+	ALTER TABLE Silver.crm_sales_details ADD sls_ord_num VARCHAR(50);
+
+GO
+
+IF COL_LENGTH('Silver.crm_prd_info', 'prd_line') IS NOT NULL
+	BEGIN
+    ALTER TABLE Silver.crm_prd_info DROP COLUMN prd_line;
+	END;
+	ALTER TABLE Silver.crm_prd_info ADD prd_line VARCHAR(50);
 
 GO
 
@@ -79,7 +98,7 @@ BEGIN
 		CASE UPPER(TRIM(prd_line))
 			 WHEN 'M' THEN 'Mountain'
 			 WHEN 'R' THEN 'Road'
-			 WHEN 'S' THEN 'Other Sales'
+			 WHEN 'S' THEN 'OtherSales'
 			 WHEN 'T' THEN 'Touring'
 			 ELSE 'N/A'
 		END AS prd_line,
@@ -97,17 +116,6 @@ BEGIN
 		sls_ord_num,
 		sls_prd_key,
 		sls_cust_id,
-		/*
-		CASE WHEN sls_order_dt=0 OR LEN(CAST(sls_order_dt AS VARCHAR(8)))!=8 THEN NULL
-			 ELSE TRY_CONVERT(DATE, CAST(sls_order_dt AS VARCHAR(8)), 112)
-		END AS sls_order_dt,
-		CASE WHEN sls_ship_dt=0 OR LEN(CAST(sls_ship_dt AS VARCHAR(8)))!=8 THEN NULL
-			 ELSE TRY_CONVERT(DATE, CAST(sls_ship_dt AS VARCHAR(8)), 112)
-		END AS sls_ship_dt,
-		CASE WHEN sls_due_dt=0 OR LEN(CAST(sls_due_dt AS VARCHAR(8)))!=8 THEN NULL
-			 ELSE TRY_CONVERT(DATE, CAST(sls_due_dt AS VARCHAR(8)), 112)
-		END AS sls_due_dt,
-		*/
 		TRY_CONVERT(DATE, CAST(sls_order_dt AS VARCHAR(8)), 112),
 		TRY_CONVERT(DATE, CAST(sls_ship_dt AS VARCHAR(8)), 112),
 		TRY_CONVERT(DATE, CAST(sls_due_dt AS VARCHAR(8)), 112),
@@ -171,6 +179,9 @@ BEGIN
 		MAINTENANCE
 		FROM Bronze.erp_PX_CAT_G1V2;
 
+	SELECT * FROM Silver.erp_PX_CAT_G1V2;
+
+END;
 	SELECT * FROM Silver.erp_PX_CAT_G1V2;
 
 END;
